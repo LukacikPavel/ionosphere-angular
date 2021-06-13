@@ -65,11 +65,11 @@ export class ScatterComponent implements OnInit {
       .subscribe((records) => {
         this.records = records;
         // console.log(this.records);
+        this.showScatter(this.records, start, end, this.attribute);
       });
 
     // var data = this.createData(this.records, this.attribute);
 
-    this.showScatter(this.records, start, end, this.attribute);
     // this.editData(this.records, this.attribute )
   }
 

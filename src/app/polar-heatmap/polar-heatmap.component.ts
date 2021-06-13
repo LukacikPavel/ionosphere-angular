@@ -39,12 +39,12 @@ export class PolarHeatmapComponent implements OnInit {
       records => {
         this.records = records;
         // console.log(this.records);
+        this.showHeatMap(this.records,this.attribute);
       }
     )    
     
     // var data = this.createData(this.records, this.attribute);
 
-    this.showHeatMap(this.records,this.attribute);
   }
 
   renderItem(params, api) {
