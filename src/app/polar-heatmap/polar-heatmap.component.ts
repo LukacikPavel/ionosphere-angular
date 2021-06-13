@@ -1,5 +1,9 @@
-import { convertUpdateArguments } from '@angular/compiler/src/compiler_util/expression_converter';
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormControl } from '@angular/forms';
+import { ThemePalette } from '@angular/material/core';
+import { Observable } from 'rxjs';
+import { Record } from 'src/services/heatmap-service.service';
+import { HeatmapServiceService } from 'src/services/heatmap-service.service';
 
 @Component({
   selector: 'app-polar-heatmap',
@@ -7,9 +11,41 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./polar-heatmap.component.css'],
 })
 export class PolarHeatmapComponent implements OnInit {
+
+  station: string;
+  attribute: string;
+  dateRange: Date;
+  timeStart: Date;
+  timeEnd: Date;
+  records: Record[];
   options: any;
 
-  constructor() {}
+  constructor(
+    private service: HeatmapServiceService
+  ) {}
+
+  
+
+  formSubmit() {
+    this.dateRange[0].setHours(this.timeStart.getHours(), this.timeStart.getMinutes(), this.timeStart.getSeconds());
+    this.dateRange[1].setHours(this.timeEnd.getHours(), this.timeEnd.getMinutes(), this.timeEnd.getSeconds());
+    const start = this.dateRange[0];
+    const end = this.dateRange[1];
+
+    // console.log("start", start);
+    // console.log("end", end);
+
+    this.service.getHeatmap2(this.station, this.attribute, start, end).subscribe(
+      records => {
+        this.records = records;
+        // console.log(this.records);
+      }
+    )    
+    
+    // var data = this.createData(this.records, this.attribute);
+
+    this.showHeatMap(this.records,this.attribute);
+  }
 
   renderItem(params, api) {
     var values = [(api.value(0) / 10 - 8) * -1, api.value(1) / 30];
@@ -33,31 +69,32 @@ export class PolarHeatmapComponent implements OnInit {
 
   convertData(dataFromBackend, attribute) {
     return dataFromBackend.map((element) => {
+      // console.log("element", element);
       return [element.elevationStart, element.azimuthStart, element[attribute]];
     });
   }
 
-  createEmptyData(){
+  createEmptyData() {
     var result = [];
-    for (var i = 0; i < 90; i+=10){
-      for (var j = 0; j < 360; j+=30){
+    for (var i = 0; i < 90; i += 10) {
+      for (var j = 0; j < 360; j += 30) {
         result.push([i, j, 0]);
       }
     }
     return result;
   }
 
-  createData(dataFromBackend, attribute){
+  createData(dataFromBackend, attribute) {
     var empty = this.createEmptyData();
     var data = this.convertData(dataFromBackend, attribute);
-    console.log(data)
-    data.forEach(element => {
+    // console.log("Data v create data",data);
+    data.forEach((element) => {
       empty.push(element);
     });
     return empty;
   }
 
-  ngOnInit(): void {
+  showHeatMap(dataFromBackend: Array<Record>, attrib: string) {
     var azimuth = [
       'N',
       '30°',
@@ -72,102 +109,112 @@ export class PolarHeatmapComponent implements OnInit {
       '300°',
       '330°',
     ];
-    var elevation = ['80°', '70°', '60°', '50°', '40°', '30°', '20°', '10°', '0°'];
-
-    const dataFromBackend = [
-      {
-        station: 'gri',
-        timeStart: '2015-09-14T12:00:00',
-        timeEnd: '2015-09-14T14:00:00',
-        azimuthStart: 90,
-        azimuthEnd: 120,
-        elevationStart: 40,
-        elevationEnd: 50,
-        s4: 0.035,
-      },
-      {
-        station: 'gri',
-        timeStart: '2015-09-14T12:00:00',
-        timeEnd: '2015-09-14T14:00:00',
-        azimuthStart: 210,
-        azimuthEnd: 240,
-        elevationStart: 40,
-        elevationEnd: 50,
-        s4: 0.04,
-      },
-      {
-        station: 'gri',
-        timeStart: '2015-09-14T12:00:00',
-        timeEnd: '2015-09-14T14:00:00',
-        azimuthStart: 210,
-        azimuthEnd: 240,
-        elevationStart: 30,
-        elevationEnd: 40,
-        s4: 0.035,
-      },
-      {
-        station: 'gri',
-        timeStart: '2015-09-14T12:00:00',
-        timeEnd: '2015-09-14T14:00:00',
-        azimuthStart: 180,
-        azimuthEnd: 210,
-        elevationStart: 30,
-        elevationEnd: 40,
-        s4: 0.04,
-      },
-      {
-        station: 'gri',
-        timeStart: '2015-09-14T12:00:00',
-        timeEnd: '2015-09-14T14:00:00',
-        azimuthStart: 180,
-        azimuthEnd: 210,
-        elevationStart: 40,
-        elevationEnd: 50,
-        s4: 0.03,
-      },
-      {
-        station: 'gri',
-        timeStart: '2015-09-14T12:00:00',
-        timeEnd: '2015-09-14T14:00:00',
-        azimuthStart: 180,
-        azimuthEnd: 210,
-        elevationStart: 50,
-        elevationEnd: 60,
-        s4: 0.03,
-      },
-      {
-        station: 'gri',
-        timeStart: '2015-09-14T12:00:00',
-        timeEnd: '2015-09-14T14:00:00',
-        azimuthStart: 150,
-        azimuthEnd: 180,
-        elevationStart: 40,
-        elevationEnd: 50,
-        s4: 0.04,
-      },
-      {
-        station: 'gri',
-        timeStart: '2015-09-14T12:00:00',
-        timeEnd: '2015-09-14T14:00:00',
-        azimuthStart: 120,
-        azimuthEnd: 150,
-        elevationStart: 30,
-        elevationEnd: 40,
-        s4: 0.075,
-      },
-      {
-        station: 'gri',
-        timeStart: '2015-09-14T12:00:00',
-        timeEnd: '2015-09-14T14:00:00',
-        azimuthStart: 120,
-        azimuthEnd: 150,
-        elevationStart: 40,
-        elevationEnd: 50,
-        s4: 0.07,
-      },
+    var elevation = [
+      '80°',
+      '70°',
+      '60°',
+      '50°',
+      '40°',
+      '30°',
+      '20°',
+      '10°',
+      '0°',
     ];
 
-    var data = this.createData(dataFromBackend, 's4');
+    // const dataFromBackend = [
+    //   {
+    //     station: 'gri',
+    //     timeStart: '2015-09-14T12:00:00',
+    //     timeEnd: '2015-09-14T14:00:00',
+    //     azimuthStart: 90,
+    //     azimuthEnd: 120,
+    //     elevationStart: 40,
+    //     elevationEnd: 50,
+    //     s4: 0.035,
+    //   },
+    //   {
+    //     station: 'gri',
+    //     timeStart: '2015-09-14T12:00:00',
+    //     timeEnd: '2015-09-14T14:00:00',
+    //     azimuthStart: 210,
+    //     azimuthEnd: 240,
+    //     elevationStart: 40,
+    //     elevationEnd: 50,
+    //     s4: 0.04,
+    //   },
+    //   {
+    //     station: 'gri',
+    //     timeStart: '2015-09-14T12:00:00',
+    //     timeEnd: '2015-09-14T14:00:00',
+    //     azimuthStart: 210,
+    //     azimuthEnd: 240,
+    //     elevationStart: 30,
+    //     elevationEnd: 40,
+    //     s4: 0.035,
+    //   },
+    //   {
+    //     station: 'gri',
+    //     timeStart: '2015-09-14T12:00:00',
+    //     timeEnd: '2015-09-14T14:00:00',
+    //     azimuthStart: 180,
+    //     azimuthEnd: 210,
+    //     elevationStart: 30,
+    //     elevationEnd: 40,
+    //     s4: 0.04,
+    //   },
+    //   {
+    //     station: 'gri',
+    //     timeStart: '2015-09-14T12:00:00',
+    //     timeEnd: '2015-09-14T14:00:00',
+    //     azimuthStart: 180,
+    //     azimuthEnd: 210,
+    //     elevationStart: 40,
+    //     elevationEnd: 50,
+    //     s4: 0.03,
+    //   },
+    //   {
+    //     station: 'gri',
+    //     timeStart: '2015-09-14T12:00:00',
+    //     timeEnd: '2015-09-14T14:00:00',
+    //     azimuthStart: 180,
+    //     azimuthEnd: 210,
+    //     elevationStart: 50,
+    //     elevationEnd: 60,
+    //     s4: 0.03,
+    //   },
+    //   {
+    //     station: 'gri',
+    //     timeStart: '2015-09-14T12:00:00',
+    //     timeEnd: '2015-09-14T14:00:00',
+    //     azimuthStart: 150,
+    //     azimuthEnd: 180,
+    //     elevationStart: 40,
+    //     elevationEnd: 50,
+    //     s4: 0.04,
+    //   },
+    //   {
+    //     station: 'gri',
+    //     timeStart: '2015-09-14T12:00:00',
+    //     timeEnd: '2015-09-14T14:00:00',
+    //     azimuthStart: 120,
+    //     azimuthEnd: 150,
+    //     elevationStart: 30,
+    //     elevationEnd: 40,
+    //     s4: 0.075,
+    //   },
+    //   {
+    //     station: 'gri',
+    //     timeStart: '2015-09-14T12:00:00',
+    //     timeEnd: '2015-09-14T14:00:00',
+    //     azimuthStart: 120,
+    //     azimuthEnd: 150,
+    //     elevationStart: 40,
+    //     elevationEnd: 50,
+    //     s4: 0.07,
+    //   },
+    // ];
+
+    var data = this.createData(dataFromBackend, attrib);
 
     var maxValue = data.reduce(function (max, item) {
       return Math.max(max, item[2]);
@@ -175,7 +222,7 @@ export class PolarHeatmapComponent implements OnInit {
 
     this.options = {
       legend: {
-        data: ['TEC at current time [TECU]'],
+        data: [attrib],
       },
       polar: {},
       tooltip: {},
@@ -215,7 +262,7 @@ export class PolarHeatmapComponent implements OnInit {
       },
       series: [
         {
-          name: 'TEC at current time [TECU]',
+          name: attrib,
           type: 'custom',
           coordinateSystem: 'polar',
           itemStyle: {
@@ -227,4 +274,6 @@ export class PolarHeatmapComponent implements OnInit {
       ],
     };
   }
+
+  ngOnInit(): void {}
 }

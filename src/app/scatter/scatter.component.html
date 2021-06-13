@@ -1,0 +1,64 @@
+<div class="scatter-wrapper">
+    <form (ngSubmit)="formSubmit()" #formModel="ngForm">
+      <mat-card class="example-card">
+        <mat-card-header>
+          <mat-card-title>Scatter</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+           
+          <mat-form-field>
+            <input
+              matInput
+              placeholder="attribute"
+              [(ngModel)]="attribute"
+              name="attribute"
+              required
+            />
+            <mat-hint>Choose an attribute: s4, tecu or sigmaphi.</mat-hint>
+          </mat-form-field>
+  
+          <mat-form-field>
+            <input
+              matInput
+              placeholder="Date"
+              [(ngModel)]="dateRange"
+              name="dateRange"
+              required
+              type="text"
+              bsDaterangepicker
+            />
+            <mat-hint>Choose range of date.</mat-hint>
+          </mat-form-field>
+  
+          <timepicker
+            [(ngModel)]="timeStart"
+            required
+            name="timeStart"
+          ></timepicker>
+          <mat-hint>Choose start hour.</mat-hint>
+    
+  
+          <timepicker
+            [(ngModel)]="timeEnd"
+            required
+            name="timeEnd"
+          ></timepicker>
+          <mat-hint>Choose end hour.</mat-hint>
+        </mat-card-content>
+  
+        <mat-card-actions>
+          <button
+            type="submit"
+            mat-raised-button
+            color="accent"
+            [disabled]="formModel.form.invalid"
+          >
+            SHOW GRAPH
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </form>
+  
+    <div echarts [options]="option" class="demo-chart"></div>
+  </div>
+  
