@@ -1,10 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import * as echarts from 'echarts';
-import { startOf } from 'ngx-bootstrap/chronos';
+import { AppServiceService } from 'src/services/app-service.service';
 import {
-  HeatmapServiceService,
+  GraphsServiceService,
   Record,
-} from 'src/services/heatmap-service.service';
+} from 'src/services/graphs-service.service';
 
 @Component({
   selector: 'app-scatter',
@@ -12,164 +11,288 @@ import {
   styleUrls: ['./scatter.component.css'],
 })
 export class ScatterComponent implements OnInit {
-  constructor(private service: HeatmapServiceService) {}
+  constructor(
+    private service: GraphsServiceService,
+    private appService: AppServiceService
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.attributes = ['tecu', 's4', 'sigmaphi'];
+  }
 
-  attribute: string;
+  isMeridian: boolean = false;
+  hidden: boolean = true;
+  selectedAttribute: string;
+  azimuthStart: string = '0';
+  azimuthEnd: string = '360';
+  elevationStart: string = '0';
+  elevationEnd: string = '90';
   dateRange: Date;
   timeStart: Date;
   timeEnd: Date;
   records: Record[];
   option: any;
-  data: number[];
-  dates: Date[];
-
-  // renderItem(params, api) {
-  //   var values = [(api.value(0) / 10 - 8) * -1, api.value(1) / 30];
-  //   var coord = api.coord(values);
-  //   var size = api.size([1, 1], values);
-  //   return {
-  //     type: 'sector',
-  //     shape: {
-  //       cx: params.coordSys.cx,
-  //       cy: params.coordSys.cy,
-  //       r0: coord[2] - size[0] / 2,
-  //       r: coord[2] + size[0] / 2,
-  //       startAngle: -coord[3],
-  //       endAngle: -(coord[3] - size[1]),
-  //     },
-  //     style: api.style({
-  //       fill: api.visual('color'),
-  //     }),
-  //   };
-  // }
+  data_pairs: { [key: string]: any[][] };
+  attributes: string[];
 
   formSubmit() {
-    this.dateRange[0].setHours(
-      this.timeStart.getHours(),
-      this.timeStart.getMinutes(),
-      this.timeStart.getSeconds()
-    );
-    this.dateRange[1].setHours(
-      this.timeEnd.getHours(),
-      this.timeEnd.getMinutes(),
-      this.timeEnd.getSeconds()
-    );
+    this.dateRange[0].setHours(this.timeStart.getHours(), 0, 0);
+    this.dateRange[1].setHours(this.timeEnd.getHours(), 0, 0);
+
     const start = this.dateRange[0];
     const end = this.dateRange[1];
 
-
     this.service
-      .getScatter2(this.attribute, start, end)
+      .getScatter(
+        this.selectedAttribute,
+        this.azimuthStart,
+        this.azimuthEnd,
+        this.elevationStart,
+        this.elevationEnd,
+        start,
+        end
+      )
       .subscribe((records) => {
         this.records = records;
-        // console.log(this.records);
-        this.showScatter(this.records, start, end, this.attribute);
+        this.hidden = false;
+        this.showScatter(this.records, start, end, this.selectedAttribute);
       });
-
-    // var data = this.createData(this.records, this.attribute);
-
-    // this.editData(this.records, this.attribute )
   }
 
   editData(records: Record[], attribute: string) {
     records.sort(function (a, b) {
       return +new Date(a.timeStart) - +new Date(b.timeStart);
     });
-    
 
-    let data = [];
-    let dates = [];
-    records.forEach((rec) => {
-      data.push(rec[attribute]);
-      dates.push(rec.timeStart);
+    this.records = records;
+
+    this.data_pairs = {
+      ran: [],
+      rep: [],
+      fsi: [],
+      chu: [],
+      cor: [],
+      fsm: [],
+      arv: [],
+      rab: [],
+      gil: [],
+      mcm: [],
+      gri: [],
+      edm: [],
+      gjo: [],
+      sac: [],
+      arc: [],
+      scintillation: [],
+    };
+
+    this.records.forEach((rec) => {
+      if (rec.scintillation) {
+        this.data_pairs['scintillation'].push([rec.timeStart, rec[attribute]]);
+      } else {
+        this.data_pairs[rec.station].push([rec.timeStart, rec[attribute]]);
+      }
     });
+  }
 
-    this.data = data;
-    this.dates = dates;
+  download() {
+    this.appService.downloadFile(
+      this.records,
+      this.selectedAttribute,
+      'jsontocsv'
+    );
   }
 
   showScatter(records: Record[], start: Date, end: Date, attribute: string) {
     this.editData(records, attribute);
     const title: string =
-      'AMON-ES- Ionosphere monitoring system, ' + [start.getFullYear(), start.getMonth() + 1, start.getDate()].join('-') + ' - ' + [end.getFullYear(), end.getMonth() + 1, end.getDate()].join('-');
-
+      'CHAIN- Ionosphere monitoring system, ' +
+      [start.getFullYear(), start.getMonth() + 1, start.getDate()].join('-') +
+      ' - ' +
+      [end.getFullYear(), end.getMonth() + 1, end.getDate()].join('-');
 
     this.option = {
       title: {
         left: 'center',
         text: title,
       },
+      legend: {
+        right: '10%',
+        top: '10%',
+        data: [
+          'ran',
+          'rep',
+          'fsi',
+          'chu',
+          'cor',
+          'fsm',
+          'arv',
+          'rab',
+          'gil',
+          'mcm',
+          'gri',
+          'edm',
+          'gjo',
+          'sac',
+          'arc',
+          'scintillation',
+        ],
+      },
+      tooltip: {},
       xAxis: {
-        type: 'category',
-        data: this.dates,
-        axisLabel : {
-          formatter: (function(value){
+        type: 'time',
+        axisLabel: {
+          formatter: function (value) {
             let label;
             value = new Date(value);
-            label = [value.getFullYear(), value.getMonth() + 1, value.getDate()].join('-');
+            label = [
+              value.getFullYear(),
+              value.getMonth() + 1,
+              value.getDate(),
+            ].join('-');
             return label;
-          })
+          },
         },
         name: 'Time(UTC)',
         nameLocation: 'middle',
-        nameGap: 50
+        nameGap: 30,
       },
       yAxis: {
         type: 'value',
-        axisLabel : {
-          formatter: '{value}'
+        axisLabel: {
+          formatter: '{value}',
         },
         name: attribute,
         nameLocation: 'middle',
-        nameGap: 50
+        nameGap: 30,
       },
       series: [
         {
-          symbolSize: 10,
-          data: this.data,
-          // [
-          //   [10.0, 8.04],
-          //   [8.07, 6.95],
-          //   [13.0, 7.58],
-          //   [9.05, 8.81],
-          //   [11.0, 8.33],
-          //   [14.0, 7.66],
-          //   [13.4, 6.81],
-          //   [10.0, 6.33],
-          //   [14.0, 8.96],
-          //   [12.5, 6.82],
-          //   [9.15, 7.2],
-          //   [11.5, 7.2],
-          //   [3.03, 4.23],
-          //   [12.2, 7.83],
-          //   [2.02, 4.47],
-          //   [1.05, 3.33],
-          //   [4.05, 4.96],
-          //   [6.03, 7.24],
-          //   [12.0, 6.26],
-          //   [12.0, 8.84],
-          //   [7.08, 5.82],
-          //   [5.02, 5.68],
-          // ],
+          name: 'ran',
+          data: this.data_pairs['ran'],
           type: 'scatter',
           itemStyle: {
-            color: function(param) {
-              // Write your logic.
-              // for example: in case your data is structured as an array of arrays, you can paint it red if the first value is lower than 10:
-              if (attribute == 's4'){
-                if (param.data > 0.07) {
-                  return 'red'
-                }
-                else return 'green'
-              }
-
-              if (attribute == 'sigmaphi'){
-                if (param.data > 0.1) return 'red'
-                else return 'green'
-              }
-            }
+            color: 'pink',
+          },
+        },
+        {
+          name: 'rep',
+          data: this.data_pairs['rep'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'black',
+          },
+        },
+        {
+          name: 'fsi',
+          data: this.data_pairs['fsi'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'yellow',
+          },
+        },
+        {
+          name: 'chu',
+          data: this.data_pairs['chu'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'brown',
+          },
+        },
+        {
+          name: 'cor',
+          data: this.data_pairs['cor'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'grey',
+          },
+        },
+        {
+          name: 'fsm',
+          data: this.data_pairs['fsm'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'blue',
+          },
+        },
+        {
+          name: 'arv',
+          data: this.data_pairs['arv'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'orange',
+          },
+        },
+        {
+          name: 'rab',
+          data: this.data_pairs['rab'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'cyan',
+          },
+        },
+        {
+          name: 'gil',
+          data: this.data_pairs['gil'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'green',
+          },
+        },
+        {
+          name: 'mcm',
+          data: this.data_pairs['mcm'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'indigo',
+          },
+        },
+        {
+          name: 'gri',
+          data: this.data_pairs['gri'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'purple',
+          },
+        },
+        {
+          name: 'edm',
+          data: this.data_pairs['edm'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'teal',
+          },
+        },
+        {
+          name: 'gjo',
+          data: this.data_pairs['mcm'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'lime',
+          },
+        },
+        {
+          name: 'sac',
+          data: this.data_pairs['sac'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'red',
+          },
+        },
+        {
+          name: 'arc',
+          data: this.data_pairs['arc'],
+          type: 'scatter',
+          itemStyle: {
+            color: 'blue grey',
+          },
+        },
+        {
+          name: 'scintillation',
+          data: this.data_pairs['scintillation'],
+          type: 'scatter',
+          symbol: 'triangle',
+          itemStyle: {
+            color: 'red',
           },
         },
       ],

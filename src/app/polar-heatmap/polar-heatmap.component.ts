@@ -1,9 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl } from '@angular/forms';
-import { ThemePalette } from '@angular/material/core';
-import { Observable } from 'rxjs';
-import { Record } from 'src/services/heatmap-service.service';
-import { HeatmapServiceService } from 'src/services/heatmap-service.service';
+import { Record } from 'src/services/graphs-service.service';
+import { GraphsServiceService } from 'src/services/graphs-service.service';
 
 @Component({
   selector: 'app-polar-heatmap',
@@ -11,40 +8,39 @@ import { HeatmapServiceService } from 'src/services/heatmap-service.service';
   styleUrls: ['./polar-heatmap.component.css'],
 })
 export class PolarHeatmapComponent implements OnInit {
-
-  station: string;
-  attribute: string;
+  isMeridian: boolean = false;
+  selectedStation: string;
+  selectedAttribute: string;
   dateRange: Date;
   timeStart: Date;
   timeEnd: Date;
   records: Record[];
   options: any;
+  stations: string[];
+  attributes: string[];
 
-  constructor(
-    private service: HeatmapServiceService
-  ) {}
+  constructor(private service: GraphsServiceService) {}
 
-  
+  ngOnInit(): void {
+    this.service.getStations().subscribe((stations) => {
+      this.stations = stations;
+    });
+
+    this.attributes = ['tecu', 's4', 'sigmaphi'];
+  }
 
   formSubmit() {
-    this.dateRange[0].setHours(this.timeStart.getHours(), this.timeStart.getMinutes(), this.timeStart.getSeconds());
-    this.dateRange[1].setHours(this.timeEnd.getHours(), this.timeEnd.getMinutes(), this.timeEnd.getSeconds());
+    this.dateRange[0].setHours(this.timeStart.getHours(), 0, 0);
+    this.dateRange[1].setHours(this.timeEnd.getHours(), 0, 0);
     const start = this.dateRange[0];
     const end = this.dateRange[1];
 
-    // console.log("start", start);
-    // console.log("end", end);
-
-    this.service.getHeatmap2(this.station, this.attribute, start, end).subscribe(
-      records => {
+    this.service
+      .getHeatmap(this.selectedStation, this.selectedAttribute, start, end)
+      .subscribe((records) => {
         this.records = records;
-        // console.log(this.records);
-        this.showHeatMap(this.records,this.attribute);
-      }
-    )    
-    
-    // var data = this.createData(this.records, this.attribute);
-
+        this.showHeatMap(this.records, this.selectedAttribute);
+      });
   }
 
   renderItem(params, api) {
@@ -69,7 +65,6 @@ export class PolarHeatmapComponent implements OnInit {
 
   convertData(dataFromBackend, attribute) {
     return dataFromBackend.map((element) => {
-      // console.log("element", element);
       return [element.elevationStart, element.azimuthStart, element[attribute]];
     });
   }
@@ -87,7 +82,6 @@ export class PolarHeatmapComponent implements OnInit {
   createData(dataFromBackend, attribute) {
     var empty = this.createEmptyData();
     var data = this.convertData(dataFromBackend, attribute);
-    // console.log("Data v create data",data);
     data.forEach((element) => {
       empty.push(element);
     });
@@ -120,99 +114,6 @@ export class PolarHeatmapComponent implements OnInit {
       '10°',
       '0°',
     ];
-
-    // const dataFromBackend = [
-    //   {
-    //     station: 'gri',
-    //     timeStart: '2015-09-14T12:00:00',
-    //     timeEnd: '2015-09-14T14:00:00',
-    //     azimuthStart: 90,
-    //     azimuthEnd: 120,
-    //     elevationStart: 40,
-    //     elevationEnd: 50,
-    //     s4: 0.035,
-    //   },
-    //   {
-    //     station: 'gri',
-    //     timeStart: '2015-09-14T12:00:00',
-    //     timeEnd: '2015-09-14T14:00:00',
-    //     azimuthStart: 210,
-    //     azimuthEnd: 240,
-    //     elevationStart: 40,
-    //     elevationEnd: 50,
-    //     s4: 0.04,
-    //   },
-    //   {
-    //     station: 'gri',
-    //     timeStart: '2015-09-14T12:00:00',
-    //     timeEnd: '2015-09-14T14:00:00',
-    //     azimuthStart: 210,
-    //     azimuthEnd: 240,
-    //     elevationStart: 30,
-    //     elevationEnd: 40,
-    //     s4: 0.035,
-    //   },
-    //   {
-    //     station: 'gri',
-    //     timeStart: '2015-09-14T12:00:00',
-    //     timeEnd: '2015-09-14T14:00:00',
-    //     azimuthStart: 180,
-    //     azimuthEnd: 210,
-    //     elevationStart: 30,
-    //     elevationEnd: 40,
-    //     s4: 0.04,
-    //   },
-    //   {
-    //     station: 'gri',
-    //     timeStart: '2015-09-14T12:00:00',
-    //     timeEnd: '2015-09-14T14:00:00',
-    //     azimuthStart: 180,
-    //     azimuthEnd: 210,
-    //     elevationStart: 40,
-    //     elevationEnd: 50,
-    //     s4: 0.03,
-    //   },
-    //   {
-    //     station: 'gri',
-    //     timeStart: '2015-09-14T12:00:00',
-    //     timeEnd: '2015-09-14T14:00:00',
-    //     azimuthStart: 180,
-    //     azimuthEnd: 210,
-    //     elevationStart: 50,
-    //     elevationEnd: 60,
-    //     s4: 0.03,
-    //   },
-    //   {
-    //     station: 'gri',
-    //     timeStart: '2015-09-14T12:00:00',
-    //     timeEnd: '2015-09-14T14:00:00',
-    //     azimuthStart: 150,
-    //     azimuthEnd: 180,
-    //     elevationStart: 40,
-    //     elevationEnd: 50,
-    //     s4: 0.04,
-    //   },
-    //   {
-    //     station: 'gri',
-    //     timeStart: '2015-09-14T12:00:00',
-    //     timeEnd: '2015-09-14T14:00:00',
-    //     azimuthStart: 120,
-    //     azimuthEnd: 150,
-    //     elevationStart: 30,
-    //     elevationEnd: 40,
-    //     s4: 0.075,
-    //   },
-    //   {
-    //     station: 'gri',
-    //     timeStart: '2015-09-14T12:00:00',
-    //     timeEnd: '2015-09-14T14:00:00',
-    //     azimuthStart: 120,
-    //     azimuthEnd: 150,
-    //     elevationStart: 40,
-    //     elevationEnd: 50,
-    //     s4: 0.07,
-    //   },
-    // ];
 
     var data = this.createData(dataFromBackend, attrib);
 
@@ -274,6 +175,4 @@ export class PolarHeatmapComponent implements OnInit {
       ],
     };
   }
-
-  ngOnInit(): void {}
 }
