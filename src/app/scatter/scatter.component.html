@@ -26,7 +26,7 @@
           <input
             matInput
             placeholder="start of azimuth"
-            (ngModel)="(azimuthStart)"
+            [(ngModel)]="azimuthStart"
             name="azimuthStart"
           />
           <mat-hint
@@ -38,7 +38,7 @@
           <input
             matInput
             placeholder="end of azimuth"
-            (ngModel)="(azimuthEnd)"
+            [(ngModel)]="azimuthEnd"
             name="azimuthEnd"
           />
           <mat-hint>Choose the end of the azimuth. Default: 360</mat-hint>
@@ -48,7 +48,7 @@
           <input
             matInput
             placeholder="start of elevation"
-            (ngModel)="(elevationStart)"
+            [(ngModel)]="elevationStart"
             name="elevationStart"
           />
           <mat-hint
@@ -60,7 +60,7 @@
           <input
             matInput
             placeholder="end of elevation"
-            (ngModel)="(elevationEnd)"
+            [(ngModel)]="elevationEnd"
             name="elevationEnd"
           />
           <mat-hint>Choose the end of the elevation. Default: 90</mat-hint>

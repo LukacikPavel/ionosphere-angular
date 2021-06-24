@@ -23,10 +23,10 @@ export class ScatterComponent implements OnInit {
   isMeridian: boolean = false;
   hidden: boolean = true;
   selectedAttribute: string;
-  azimuthStart: string = '0';
-  azimuthEnd: string = '360';
-  elevationStart: string = '0';
-  elevationEnd: string = '90';
+  azimuthStart: string;
+  azimuthEnd: string;
+  elevationStart: string;
+  elevationEnd: string;
   dateRange: Date;
   timeStart: Date;
   timeEnd: Date;
@@ -41,6 +41,19 @@ export class ScatterComponent implements OnInit {
 
     const start = this.dateRange[0];
     const end = this.dateRange[1];
+
+    if (this.azimuthStart == undefined) {
+      this.azimuthStart = '0';
+    }
+    if (this.azimuthEnd == undefined) {
+      this.azimuthEnd = '360';
+    }
+    if (this.elevationStart == undefined) {
+      this.elevationStart = '0';
+    }
+    if (this.elevationEnd == undefined) {
+      this.elevationEnd = '90';
+    }
 
     this.service
       .getScatter(
