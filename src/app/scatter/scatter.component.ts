@@ -90,7 +90,7 @@ export class ScatterComponent implements OnInit {
         if (!this.data_pairs['scintillation']) {
           this.data_pairs['scintillation'] = [];
         }
-        this.data_pairs['scintillation'].push([rec.timeStart, rec[attribute]]);
+        this.data_pairs['scintillation'].push([rec.timeStart, rec[attribute], rec.station]);
       } else {
         if (!this.data_pairs[rec.station]) {
           this.data_pairs[rec.station] = [];
@@ -120,6 +120,7 @@ export class ScatterComponent implements OnInit {
     series.push({
       name: 'scintillation',
       data: this.data_pairs['scintillation'],
+      station: 'sss',
       type: 'scatter',
       symbol: 'triangle',
       itemStyle: {
@@ -152,7 +153,12 @@ export class ScatterComponent implements OnInit {
         text: title,
       },
       legend: this.getLegend(),
-      tooltip: {},
+      tooltip: {
+        formatter: (params) => {
+        var colorSpan = color => '<span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:' + color + '"></span>';
+        return colorSpan(params.color) + 'station: ' + `${params.data[2] ? '<b>' + params.data[2] + '</b>' : ''}` + ' <b>' + params.seriesName + '</b>'
+        }
+    },
       xAxis: {
         type: 'time',
         axisLabel: {

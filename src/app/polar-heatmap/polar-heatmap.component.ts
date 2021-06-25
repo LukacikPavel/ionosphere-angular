@@ -69,23 +69,13 @@ export class PolarHeatmapComponent implements OnInit {
     });
   }
 
-  createEmptyData() {
-    var result = [];
-    for (var i = 0; i < 90; i += 10) {
-      for (var j = 0; j < 360; j += 30) {
-        result.push([i, j, 0]);
-      }
-    }
-    return result;
-  }
-
   createData(dataFromBackend, attribute) {
-    var empty = this.createEmptyData();
+    var result = [];
     var data = this.convertData(dataFromBackend, attribute);
     data.forEach((element) => {
-      empty.push(element);
+      result.push(element);
     });
-    return empty;
+    return result;
   }
 
   showHeatMap(dataFromBackend: Array<Record>, attrib: string) {
@@ -117,9 +107,14 @@ export class PolarHeatmapComponent implements OnInit {
 
     var data = this.createData(dataFromBackend, attrib);
 
-    var maxValue = data.reduce(function (max, item) {
-      return Math.max(max, item[2]);
-    }, -Infinity);
+    var maxValue = 1; 
+    if (attrib == 'tecu'){
+      maxValue = 88.31;
+    } else if (attrib == 's4'){
+      maxValue = 0.76;
+    } else {
+      maxValue = 3.61;
+    };
 
     this.options = {
       legend: {
@@ -137,7 +132,7 @@ export class PolarHeatmapComponent implements OnInit {
         dimension: 2,
         calculable: true,
         inRange: {
-          color: ['#ffffff', '#FCFF00', '#009000', '#DD2000'],
+          color: ['#00ff00', '#FCFF00','#FCFF00','#ff0000','#ff0000','#ff0000', '#ff0000'],
         },
       },
       angleAxis: {
