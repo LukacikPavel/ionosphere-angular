@@ -44,7 +44,7 @@ export class PolarHeatmapComponent implements OnInit {
   }
 
   renderItem(params, api) {
-    var values = [(api.value(0) / 10 - 8) * -1, api.value(1) / 30];
+    var values = [(api.value(0) / 10 - 8) * -1, api.value(1) / 30 + 1];
     var coord = api.coord(values);
     var size = api.size([1, 1], values);
     return {

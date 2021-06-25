@@ -18,6 +18,9 @@ export class ScatterComponent implements OnInit {
 
   ngOnInit(): void {
     this.attributes = ['tecu', 's4', 'sigmaphi'];
+    this.service
+      .getStations()
+      .subscribe((stations) => (this.stations = stations));
   }
 
   isMeridian: boolean = false;
@@ -34,6 +37,7 @@ export class ScatterComponent implements OnInit {
   option: any;
   data_pairs: { [key: string]: any[][] };
   attributes: string[];
+  stations: string[];
 
   formSubmit() {
     this.dateRange[0].setHours(this.timeStart.getHours(), 0, 0);
@@ -79,29 +83,18 @@ export class ScatterComponent implements OnInit {
 
     this.records = records;
 
-    this.data_pairs = {
-      ran: [],
-      rep: [],
-      fsi: [],
-      chu: [],
-      cor: [],
-      fsm: [],
-      arv: [],
-      rab: [],
-      gil: [],
-      mcm: [],
-      gri: [],
-      edm: [],
-      gjo: [],
-      sac: [],
-      arc: [],
-      scintillation: [],
-    };
+    this.data_pairs = {};
 
     this.records.forEach((rec) => {
       if (rec.scintillation) {
+        if (!this.data_pairs['scintillation']) {
+          this.data_pairs['scintillation'] = [];
+        }
         this.data_pairs['scintillation'].push([rec.timeStart, rec[attribute]]);
       } else {
+        if (!this.data_pairs[rec.station]) {
+          this.data_pairs[rec.station] = [];
+        }
         this.data_pairs[rec.station].push([rec.timeStart, rec[attribute]]);
       }
     });
@@ -111,8 +104,38 @@ export class ScatterComponent implements OnInit {
     this.appService.downloadFile(
       this.records,
       this.selectedAttribute,
-      'jsontocsv'
+      'ionosphere_data'
     );
+  }
+
+  getSeries() {
+    let series = [];
+    this.stations.forEach((station) => {
+      series.push({
+        name: station,
+        data: this.data_pairs[station],
+        type: 'scatter',
+      });
+    });
+    series.push({
+      name: 'scintillation',
+      data: this.data_pairs['scintillation'],
+      type: 'scatter',
+      symbol: 'triangle',
+      itemStyle: {
+        color: 'red',
+      },
+    });
+    return series;
+  }
+
+  getLegend() {
+    let legend = {
+      right: '10%',
+      top: '10%',
+      data: [...this.stations, 'scintillation'],
+    };
+    return legend;
   }
 
   showScatter(records: Record[], start: Date, end: Date, attribute: string) {
@@ -128,28 +151,7 @@ export class ScatterComponent implements OnInit {
         left: 'center',
         text: title,
       },
-      legend: {
-        right: '10%',
-        top: '10%',
-        data: [
-          'ran',
-          'rep',
-          'fsi',
-          'chu',
-          'cor',
-          'fsm',
-          'arv',
-          'rab',
-          'gil',
-          'mcm',
-          'gri',
-          'edm',
-          'gjo',
-          'sac',
-          'arc',
-          'scintillation',
-        ],
-      },
+      legend: this.getLegend(),
       tooltip: {},
       xAxis: {
         type: 'time',
@@ -178,137 +180,7 @@ export class ScatterComponent implements OnInit {
         nameLocation: 'middle',
         nameGap: 30,
       },
-      series: [
-        {
-          name: 'ran',
-          data: this.data_pairs['ran'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'pink',
-          },
-        },
-        {
-          name: 'rep',
-          data: this.data_pairs['rep'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'black',
-          },
-        },
-        {
-          name: 'fsi',
-          data: this.data_pairs['fsi'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'yellow',
-          },
-        },
-        {
-          name: 'chu',
-          data: this.data_pairs['chu'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'brown',
-          },
-        },
-        {
-          name: 'cor',
-          data: this.data_pairs['cor'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'grey',
-          },
-        },
-        {
-          name: 'fsm',
-          data: this.data_pairs['fsm'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'blue',
-          },
-        },
-        {
-          name: 'arv',
-          data: this.data_pairs['arv'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'orange',
-          },
-        },
-        {
-          name: 'rab',
-          data: this.data_pairs['rab'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'cyan',
-          },
-        },
-        {
-          name: 'gil',
-          data: this.data_pairs['gil'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'green',
-          },
-        },
-        {
-          name: 'mcm',
-          data: this.data_pairs['mcm'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'indigo',
-          },
-        },
-        {
-          name: 'gri',
-          data: this.data_pairs['gri'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'purple',
-          },
-        },
-        {
-          name: 'edm',
-          data: this.data_pairs['edm'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'teal',
-          },
-        },
-        {
-          name: 'gjo',
-          data: this.data_pairs['mcm'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'lime',
-          },
-        },
-        {
-          name: 'sac',
-          data: this.data_pairs['sac'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'red',
-          },
-        },
-        {
-          name: 'arc',
-          data: this.data_pairs['arc'],
-          type: 'scatter',
-          itemStyle: {
-            color: 'blue grey',
-          },
-        },
-        {
-          name: 'scintillation',
-          data: this.data_pairs['scintillation'],
-          type: 'scatter',
-          symbol: 'triangle',
-          itemStyle: {
-            color: 'red',
-          },
-        },
-      ],
+      series: this.getSeries(),
     };
   }
 }

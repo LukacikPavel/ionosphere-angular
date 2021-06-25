@@ -13,7 +13,7 @@ export class AppServiceService {
       'timeEnd',
       'azimuthStart',
       'azimuthEnd',
-      'elavationStart',
+      'elevationStart',
       'elevationEnd',
       'scintillation',
       attribute,
